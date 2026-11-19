@@ -1,0 +1,37 @@
+name: Import Godot ZIP
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import-zip:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Download the ZIP from the public download page
+        run: |
+          set -eu
+          curl -fsSL --retry 3 -o mole-escape-godot.zip \
+            https://site-7r7ehf.freebuff.site/mole-escape-godot.zip
+          echo "43d11834e2fcc1e1168672f4f2e3de249ac51a7e16e6d83d4cf6ce07a4f3006d  mole-escape-godot.zip" | sha256sum -c -
+          stat -c '%s bytes' mole-escape-godot.zip
+
+      - name: Commit the ZIP
+        run: |
+          set -eu
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add mole-escape-godot.zip
+          if git diff --cached --quiet; then
+            echo "ZIP already committed; nothing to do."
+            exit 0
+          fi
+          git commit -m "Add the Godot project ZIP with the three-heart HUD"
+          git push
